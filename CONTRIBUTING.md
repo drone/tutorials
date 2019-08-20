@@ -12,7 +12,7 @@ Submit your first draft by opening a pull request to the repository. The project
 
 # Bounties
 
-Sponsored tutorials are [labeled](https://github.com/drone/tutorials/issues?q=is%3Aissue+is%3Aopen+label%3Asponsored) in the issue tracker. We are able to offer $200 Amazon Giftcards for contributing a sponsored tutorial. Payments are released withing one week of the pull request being merged. All payouts are at editorial discretion.
+Sponsored tutorials are [labeled](https://github.com/drone/tutorials/issues?q=is%3Aissue+is%3Aopen+label%3Asponsored) in the issue tracker. We are able to offer $200 Amazon Giftcards for contributing a sponsored tutorial. Payments are released within one week of the pull request being merged. All payouts are at editorial discretion.
 
 # Promotion
 
