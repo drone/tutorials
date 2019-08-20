@@ -6,6 +6,20 @@ To contribute a tutorial that is assigned a bounty please read below:
 
 If you would like to contribute a tutorial please comment on the GitHub issue and let us know you are interested. When an author is chosen to write a tutorial they will be assigned ownership of the issue. Please do not start writing a tutorial until you have been assigned ownership.
 
+# Building
+
+The tutorials website uses Hugo to generate static content. Please see the Hugo [documentation](https://gohugo.io/getting-started/installing/) for installation instructions. Execute the following command to create a new article:
+
+```
+hugo new name-of-your-article.md
+```
+
+Execute the following command to build the website and serve at `localhost:1313`
+
+```
+hugo -w serve
+```
+
 # Editing
 
 Submit your first draft by opening a pull request to the repository. The project maintainers will work with you directly to edit and revise your tutorial.
