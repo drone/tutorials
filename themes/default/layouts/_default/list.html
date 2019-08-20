@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{ partial "head.html" . }}
+    </head>
+    <body class="list">
+        {{ partial "header.html" . }}
+    
+        <section class="listing">
+            <div class="center">
+                <h1>{{ if .Data.Term }}Tutorials For "{{ .Data.Term }}"{{ else }}All Tutorials{{ end }}</h1>
+                <div>
+                    {{ range .Pages }}
+                    <div class="item">
+                        <a href="{{ .URL }}" class="name">{{ .Title }}</a>
+                        <span class="tags">
+                            {{ range .Params.tags }}
+                            <a href="/tags/{{ . }}">{{ . }}</a>
+                            {{ end }}
+                        </span>
+                    </div>
+                    {{ end }}
+                </div>
+            </div>
+        </section>
+    </body>
+</html>

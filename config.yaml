@@ -1,0 +1,11 @@
+baseURL: https://tutorials.drone.io
+title: Drone Tutorials
+theme: default
+
+taxonomies:
+  tag: tags
+
+pygmentsUseClasses: true
+pygmentsCodefences: true
+
+googleAnalytics: "UA-34247933-5"

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{ partial "head.html" . }}
+    </head>
+    <body class="index">
+        {{ partial "header.html" . }}
+    
+        <section class="featured">
+            <div class="center">
+                <h1>Resources for building, testing and delivering software.</h1>
+                <h2>Featured Tutorials</h2>
+
+                <div class="cards">
+                    {{ range .Pages }}
+                    {{ if eq .Params.featured true }}
+                    <a href="{{ .URL }}">
+                        <div class="image" style="background-image: url({{ .Params.Image }})"></div>
+                        <div class="body">
+                            <span class="name">{{ .Title }}</span>
+                            <span class="author">by @{{ .Params.author }}</span>
+                        </div>
+                    </a>
+                    {{ end }}
+                    {{ end }}
+                </div>
+            </div>
+        </section>
+
+        <section class="listing">
+            <div class="center">
+                <h1>All Tutorials</h1>
+                <div>
+                    {{ range .Pages }}
+                    <div class="item">
+                        <a href="{{ .URL }}" class="name">{{ .Title }}</a>
+                        <span class="tags">
+                            {{ range .Params.tags }}
+                            <a href="/tags/{{ . }}">{{ . }}</a>
+                            {{ end }}
+                        </span>
+                    </div>
+                    {{ end }}
+                </div>
+            </div>
+        </section>
+    </body>
+</html>
