@@ -1,6 +1,4 @@
-The tutorials website hosts community-contributed content with a focus on building, testing and releasing software. Anyone can contribute a tutorial to the website. There is a list of requested topics in our issue tracker. Some of these issues are assigned [bounties](https://github.com/drone/tutorials/issues?q=is%3Aissue+is%3Aopen+label%3Asponsored).
-
-To contribute a tutorial that is assigned a bounty please read below:
+The tutorials website hosts community-contributed content with a focus on building, testing and releasing software. Anyone can contribute a tutorial to the website. There is a list of requested topics in our issue tracker. If an issue has the [`sponsored`](https://github.com/drone/tutorials/issues?q=is%3Aissue+is%3Aopen+label%3Asponsored) label it indicates the topic has a bounty and reward for contribution. 
 
 # Apply
 
@@ -26,7 +24,7 @@ Submit your first draft by opening a pull request to the repository. The project
 
 # Bounties
 
-Sponsored tutorials are [labeled](https://github.com/drone/tutorials/issues?q=is%3Aissue+is%3Aopen+label%3Asponsored) in the issue tracker. We are able to offer $200 Amazon Giftcards for contributing a sponsored tutorial. Payments are released within one week of the pull request being merged. All payouts are at editorial discretion.
+Sponsored tutorials are [labeled](https://github.com/drone/tutorials/issues?q=is%3Aissue+is%3Aopen+label%3Asponsored) in the issue tracker. We are able to offer $200 Amazon Giftcards for contributing a sponsored tutorial. If an issue is not sponsored there is no reward. Payments are released within one week of the pull request being merged. All payouts are at editorial discretion.
 
 # Promotion
 
