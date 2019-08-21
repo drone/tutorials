@@ -9,3 +9,6 @@ pygmentsUseClasses: true
 pygmentsCodefences: true
 
 googleAnalytics: "UA-34247933-5"
+
+outputs:
+  home: ["HTML", "JSON"]

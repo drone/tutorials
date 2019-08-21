@@ -17,12 +17,16 @@
     align-items: center;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: 300px auto;
+    grid-template-columns: 1fr 600px 1fr;
     z-index: 1;
 
     .branding {
         display: flex;
         padding: @header-padding;
+    }
+
+    #search-input {
+        display: none;
     }
 
     .logo {

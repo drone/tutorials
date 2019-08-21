@@ -133,12 +133,12 @@ body {
 }
 .single main {
   padding-top: 48px;
-  max-width: 1150px;
+  max-width: 1200px;
   box-sizing: border-box;
   margin: 0px auto;
   display: grid;
-  grid-template-columns: 150px 1fr 250px;
-  grid-gap: 60px;
+  grid-template-columns: 250px 600px 250px;
+  grid-gap: 50px;
 }
 .single aside .sticky {
   position: sticky;
@@ -556,12 +556,15 @@ body {
   align-items: center;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: 300px auto;
+  grid-template-columns: 1fr 600px 1fr;
   z-index: 1;
 }
 .header .branding {
   display: flex;
   padding: 0 26px;
+}
+.header #search-input {
+  display: none;
 }
 .header .logo {
   width: 30px;
