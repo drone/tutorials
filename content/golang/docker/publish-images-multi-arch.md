@@ -4,6 +4,7 @@ title: Publishing Go Docker Images for Multiple Architectures
 author: bradrydzewski
 featured: true
 image: https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/How_To_Overthink_Nautically-Themed_Open-Source_Projects_After_Reading_Moby_Dick_FINAL.png?1554123533
+url: publish-golang-docker-images-for-multiple-architectures
 keywords:
 - golang
 - docker

@@ -3,6 +3,7 @@ date: 2000-01-01T00:00:00+00:00
 title: Publishing Go Docker Images on ARM
 author: bradrydzewski
 image: https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/go_image.png?1554493581
+url: publish-golang-docker-images-for-arm
 keywords:
 - golang
 - docker
