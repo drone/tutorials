@@ -159,6 +159,10 @@ Create and run a Docker container using our image. _Note that we expose port 808
 $ docker run -p 8080:8080 hello-world
 ```
 
+{{< alert info >}}
+Docker Desktop uses qemu-statis to run containers for different Linux architectures such as arm, mips, ppc64le and s390x.
+{{< / alert >}}
+
 # Continuous Integration
 
 Once our project is ready and is pushed to GitHub we can automate the build and test processing using continuous integration.
