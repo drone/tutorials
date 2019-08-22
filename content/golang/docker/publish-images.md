@@ -181,7 +181,7 @@ name: build
 
 platform:
   os: linux
-  arch: arm64
+  arch: amd64
 
 steps:
 - name: test
