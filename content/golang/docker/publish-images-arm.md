@@ -160,7 +160,7 @@ $ docker run -p 8080:8080 hello-world
 ```
 
 {{< alert info >}}
-Docker Desktop uses qemu-statis to run containers for different Linux architectures such as arm, mips, ppc64le and s390x.
+Docker Desktop uses qemu-static to run containers for different Linux architectures such as arm, mips, ppc64le and s390x.
 {{< / alert >}}
 
 # Continuous Integration
