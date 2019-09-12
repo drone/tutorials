@@ -2,7 +2,7 @@
 date: 2000-01-01T00:00:00+00:00
 title: Publishing Node Docker Images on ARM
 author: bradrydzewski
-image: https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/Docker-Mostov_v3_twitter-_-facebook.png?1551118991
+image: https://dummyimage.com/650x300/253d5f/ffffff
 keywords:
 - node
 - docker

@@ -2,7 +2,7 @@
 date: 2000-01-01T00:00:00+00:00
 title: Publishing Go Docker Images on Linux
 author: bradrydzewski
-image: https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/go_image.png?1554493581
+image: https://dummyimage.com/650x300/253d5f/ffffff
 url: publish-golang-docker-images
 keywords:
 - golang

@@ -2,7 +2,7 @@
 date: 2000-01-01T00:00:00+00:00
 title: Publishing Go Docker Images on ARM
 author: bradrydzewski
-image: https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/go_image.png?1554493581
+image: https://dummyimage.com/650x300/253d5f/ffffff
 url: publish-golang-docker-images-for-aarch64
 keywords:
 - golang
@@ -202,7 +202,18 @@ In the above example we define our Pipeline steps as a series of shell commands 
 
 ### The `platform` Section
 
-_TODO_
+Defines the target operating system and environment.
+
+{{< highlight text "linenos=table,hl_lines=5-7" >}}
+kind: pipeline
+type: docker
+name: build
+
+platform:
+  os: linux
+  arch: arm64
+{{< / highlight >}}
+
 
 ### The `name` Attribute
 
