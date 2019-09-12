@@ -2,9 +2,9 @@
 date: 2000-01-01T00:00:00+00:00
 title: Publishing Go Docker Images for Multiple Architectures
 author: bradrydzewski
-featured: true
 image: https://dummyimage.com/650x300/253d5f/ffffff
 url: publish-golang-docker-images-for-multiple-architectures
+draft: true
 keywords:
 - golang
 - docker

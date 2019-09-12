@@ -3,6 +3,7 @@ date: 2000-01-01T00:00:00+00:00
 title: Publishing Go Docker Images on ARM
 author: bradrydzewski
 image: https://dummyimage.com/650x300/253d5f/ffffff
+featured: true
 url: publish-golang-docker-images-for-aarch64
 keywords:
 - golang

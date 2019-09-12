@@ -1,15 +1,16 @@
 ---
 date: 2000-01-01T00:00:00+00:00
-title: Publishing Rust Docker Images for Multiple Architectures.
+title: Publishing Node Docker Images on ARM
 author: bradrydzewski
+draft: true
+image: https://dummyimage.com/650x300/253d5f/ffffff
 keywords:
-- rust
+- node
 - docker
 tags:
-- rust
+- node
 - docker
 - arm
-- amd64
 ---
 
 
@@ -45,6 +46,8 @@ func main() {
 Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 # Third Step
+
+## Third And A Half Step
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 

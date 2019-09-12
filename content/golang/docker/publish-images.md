@@ -4,6 +4,7 @@ title: Publishing Go Docker Images on Linux
 author: bradrydzewski
 image: https://dummyimage.com/650x300/253d5f/ffffff
 url: publish-golang-docker-images
+featured: true
 keywords:
 - golang
 - docker
