@@ -17,13 +17,17 @@ tags:
 
 This tutorial will show you the steps of building a simple [Go](https://golang.org) application and then publishing it in a [Docker](https://www.docker.com/) image for multiple target architectures. The guide will focus on [ARM64](https://en.wikipedia.org/wiki/ARM_architecture#AArch64_features) and [AMD64](https://en.wikipedia.org/wiki/X86-64), but the method is the same for any other supported platform.
 
+{{<alert "info">}}
+The name "octocat" is used as an example, make sure to replace it with your own username where appropriate.
+{{</alert>}}
+
 # Prerequisites
 
 - You will need to have [Docker](https://docs.docker.com/install/) installed. *(version 19.03 as of this tutorial)*
 
-{{< alert "info" >}}
+{{<alert "info">}}
 <a href="https://golang.org">Go</a> 1.11 or higher is also used in the tutorial for convenience, but it can be done without it.
-{{< / alert >}}
+{{</alert>}}
 
 # The Go Application
 
@@ -31,22 +35,25 @@ We will use a basic HTTP hello-world application for our example.
 
 ## Writing the application
 
-First, create the Go [module](https://blog.golang.org/using-go-modules) in an empty directory with 
+First create an empty directory that you will throughout the tutorial. You will need to run every command from there.
+
+Then create a new Go [module](https://blog.golang.org/using-go-modules) with:
+
 ```
 go mod init github.com/octocat/hello-world
 ```
 
 This will create the necessary `go.mod` file with the following content:
-{{< highlight text "linenos=table,hl_lines=99" >}}
+{{<highlight text "linenos=table,hl_lines=99">}}
 module github.com/octocat/hello-world
 
 go 1.11
-{{< / highlight >}}
+{{</highlight>}}
 
 We will also need the business logic of the application.
-For that, create a `main.go` file with the following content:
+For that, create a `main.go` file with the following code:
 
-{{< highlight text "linenos=table,hl_lines=99" >}}
+{{<highlight text "linenos=table,hl_lines=99">}}
 package main
 
 import (
@@ -62,15 +69,15 @@ func main() {
 func handler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintln(w, "hello world")
 }
-{{< / highlight >}}
+{{</highlight>}}
 
 When it is run, it will start a HTTP Server that listens on port `8080`, and will simply respond with the `hello world` text for every request. It is enough for us for now just to make sure everything works fine.
 
 ## Testing the Application Without Docker
 
-{{< alert "info" >}}
+{{<alert "info">}}
 Since we will use Docker to build the image, this step can be skipped.
-{{< / alert>}}
+{{</alert>}}
 
 To build and run the application, use
 
@@ -81,69 +88,73 @@ go run .
 It will start the server, then you should be able to visit `http://localhost:8080` in your browser, and see the `hello world` text.
 
 
-{{< alert "warn" >}}
+{{<alert "warn">}}
 If the port is already in use, the server will panic! You can pick a port other than 8080 if you wish, but make sure to use the same port throughout the tutorial.
-{{< / alert>}}
+{{</alert>}}
 
 # Building with Docker
 
 It is time to build a Docker image with our application in it.
 
+The common practice for Go projects is to separate the build process of the application from the distribution image.
+This approach works better with Continuos Integration and Delivery, allowing more caching opportunities.
+
+However, you could also use [multi-stage](https://docs.docker.com/develop/develop-images/multistage-build/) build with a single Dockerfile if you wanted.
+
+{{<alert "info">}}
+If you are not familiar with Dockerfiles, you can read more about them <a href="https://docs.docker.com/engine/reference/builder/">here</a>.
+{{</alert>}}
+
 ## Building for ARM64
 
-We will create a two-stage `Dockerfile` with a stage that builds our application, then an another stage that will be based on `alpine`, and will run our already built executable. You can read about [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/) if you are not familiar with them.
+First we build the application using Docker with the official Go image.
 
-{{< alert "info" >}}
-If you are not familiar with Dockerfiles, you can read more about them <a href="https://docs.docker.com/engine/reference/builder/">here</a>.
-{{< / alert >}}
+We will need to set three environment variables for the Go compiler:
+
+- `CGO_ENABLED=0`: This one disables [CGo](https://github.com/golang/go/wiki/cgo), it is only needed in our case because we will distribute with an [Alpine Linux](https://alpinelinux.org/) image, and it would run into problems with linking to `libc`.
 
 
-{{< alert "info" >}}
-We could omit the second stage, but a Docker image should not be larger than necessary, and we do not need the Go build environment inside the final image when distributing it.
-{{< / alert >}}
+- `GOOS=linux`: This one sets the target operating system to Linux.
 
-Create a `Dockerfile` with the following content:
 
-{{< highlight text "linenos=table,hl_lines=99" >}}
-# Use the official Go image to build the application with.
-FROM golang:1.11 as builder
+- `GOARCH=arm64`: This one sets the target **ARM64** architecture.
 
-# Create a working directory.
-WORKDIR /hello
+{{<alert "info">}}
+You can see the available GOOS and GOARCH combinations <a href="https://golang.org/doc/install/source#environment">here</a>.
+{{</alert>}}
 
-# Add the files necessary for building the application.
-ADD main.go /hello
-ADD go.mod /hello
+We also set the working directory of the image to `/app`, and mount the current directory there using Docker [volumes](https://docs.docker.com/storage/volumes/).
 
-# Then set the Go build environment variables.
+{{<alert "warn">}}
+If you use cmd on Windows, you must use "-v %cd%:/app" to mount the current directory.
+{{</alert>}}
 
-# We need this because if it is omitted,
-# the final binary will be linked to libc,
-# and will have dependency issues on Alpine.
-ENV CGO_ENABLED 0
+So our final Docker command will be:
 
-# This is the target Operating system,
-# we use "linux" here because it is the most commonly used,
-# but we could also use "windows" (E.g. targetting Windows 10 IoT Core).
-ENV GOOS linux
+```
+docker run \
+  -e CGO_ENABLED=0 \
+  -e GOOS=linux \
+  -e GOARCH=arm64 \
+  -w /app \
+  -v ${PWD}:/app \
+  golang:1.13 go build
+```
 
-# Our target architecture, ARM64 in this case.
-ENV GOARCH arm64
+This will produce a `hello-world` application in our project's directory.
 
-# Build the application,
-# this will create a "hello-world" binary.
-RUN go build
+Then we will need to distribute it in a Docker image.
+In order to do that, create a `Dockerfile` with the following content:
 
-# Create the second stage, the final image.
-# Make sure you use the correct target architecture
-# of the base image, ARM64 in this case.
+{{<highlight text "linenos=table,hl_lines=99">}}
+# We use the ARM64 version of Alpine.
 FROM arm64v8/alpine
 
-# We use the same working directory for convenience.
-WORKDIR /hello
+# We use the /app working directory for convenience.
+WORKDIR /app
 
 # Copy the already built binary file from the first stage.
-COPY --from=builder /hello/hello-world .
+COPY hello-world /app
 
 # Our application uses the 8080 port
 # to communicate, so we need to expose it.
@@ -151,16 +162,18 @@ EXPOSE 8080
 
 # Finally we set the entry point of the image,
 # so that the hello-world server runs whenever the container is started.
-ENTRYPOINT [ "/hello/hello-world" ]
-{{< / highlight >}}
+ENTRYPOINT [ "/app/hello-world" ]
+{{</highlight>}}
 
-Each step has comments in the `Dockerfile`, make sure you read them, and understand what is happening.
+{{<alert "warn">}}
+Make sure you use a base image of the correct architecture, ARM64 in this case.
+{{</alert>}}
 
 With our `Dockerfile` in place, we can finally build the image with Docker.
 
-{{< alert "info" >}}
+{{<alert "info">}}
 We also tag the image "hello-world" for convenience.
-{{< / alert >}}
+{{</alert>}}
 
 
 ```
@@ -181,48 +194,73 @@ hello-world latest 8fd45a7d5056 2 minutes ago 11.5MB
 
 Now you can use the image on your ARM64 devices, and/or publish it to [Docker Hub](https://docs.docker.com/docker-hub/).
 
-{{< alert "info" >}}
-Note that because the architecture of the image is ARM64, you cannot natively run it on AMD64 machines.
-{{< / alert >}}
+{{<alert "info">}}
+You can also use the image with Docker Desktop for Windows or Mac even on different host architectures.
+On Linux this requires some <a href="https://github.com/hypriot/qemu-register">initial setup</a>.
+{{</alert>}}
 
-## Building for AMD64
+You can test the image with the following command:
 
-Switching target architecture with Go and Docker is really easy. We can use the examples from the [ARM64 build steps]({{< ref "#building-with-docker-for-arm64" >}}), and then simply change the `arm64` values to `amd64`, or omit it where it is not needed since AMD64 is the most commonly used architecture.
-
-Only two lines need to be changed in the `Dockerfile`:
-
-The target architecture for the Go compiler:
-```
-# ENV GOARCH arm64
-ENV GOARCH amd64
-```
-
-And also we need an AMD64-based Alpine image:
-```
-# FROM arm64v8/alpine
-FROM alpine
-```
-
-After following the [ARM64 build steps]({{< ref "#building-with-docker-for-arm64" >}}) you can use the image on your AMD64 devices, and/or publish it to [Docker Hub](https://docs.docker.com/docker-hub/).
-
-{{< alert "info" >}}
-Note that because the architecture of the image is AMD64, you cannot run it natively on ARM64 machines.
-{{< / alert >}}
-
-This time, if you are on an AMD64 computer, you can also test the final image by using
 ```
 docker run -it -p 8080:8080 hello-world
 ```
 
 Then you should be able to see the hello-world application in your [browser](http://localhost:8080).
 
-# Continuous Integration
+## Building for AMD64
+
+Switching target architecture with Go easy. We can use the examples from the [ARM64 build steps]({{< ref "#building-with-docker-for-arm64" >}}) with a few modifications.
+
+We will need to change the `GOARCH` to `amd64`, and then use an AMD64-based image for distribution.
+
+So our build command will look like this:
+
+{{<highlight text "linenos=table,hl_lines=4">}}
+docker run \
+  -e CGO_ENABLED=0 \
+  -e GOOS=linux \
+  -e GOARCH=arm64 \
+  -w /app \
+  -v ${PWD}:/app \
+  golang:1.13 go build
+{{</highlight>}}
+
+And then our `Dockerfile`:
+
+{{<highlight text "linenos=table,hl_lines=2">}}
+# We use the default AMD64 version of Alpine.
+FROM alpine
+
+WORKDIR /app
+
+COPY hello-world /app
+
+EXPOSE 8080
+
+ENTRYPOINT [ "/app/hello-world" ]
+{{</highlight>}}
+
+Finally we build it with using:
+
+```
+docker build -t hello-world .
+```
+
+You can test the image with the following command:
+
+```
+docker run -it -p 8080:8080 hello-world
+```
+
+Then you should be able to see the hello-world application in your [browser](http://localhost:8080).
+
+# Continuous Integration and Delivery
 
 Even though the steps above are easy, it makes sense to automate them. 
 
 In order to do that, you will need to set up a [Git](https://git-scm.com) repository. For the rest of the tutorial we will assume, that the project is already on [GitHub](https://github.com/).
 
-In this section we configure [Drone](https://drone.io), an Open Source continuous integration system, to automatically build and test our code every time we push to GitHub. You can install Drone on your own servers, or you can use the free Cloud offering.
+In this section we configure [Drone](https://drone.io), an Open Source continuous integration system, to automatically build and test our code every time we push to GitHub. You can install Drone on your [own servers](https://docs.drone.io/installation/overview/), or you can use the free Cloud offering.
 
 ## Activation
 
@@ -232,9 +270,29 @@ Fist, login into Drone and activate your repository:
 
 ## Configuration
 
-Next, define a Continuous Integration Pipeline for your project. Drone looks for special `.drone.yml` file within repositories for the Pipeline definition:
+Next, define a [Continuous Integration Pipeline](https://docs.drone.io/configure/pipeline/) for your project. Drone looks for special `.drone.yml` file within repositories for the Pipeline definition.
 
-{{< highlight text "linenos=table,hl_lines=99" >}}
+We will achieve the same result we did in [Our Docker build steps]({{< ref "#building-with-docker" >}}), but this time automatically.
+
+First we need to set some basic information for Drone about our pipeline:
+
+- The kind of the `.yml` file. In most cases this will be `pipeline`.
+
+- The type of our pipeline. We want to use Docker containers for each step.
+
+- The name of the pipeline. This can be anything you like.
+
+- We also set the platform we want to execute the pipeline on. This depends on what platform your Drone Runner is on.
+
+Then translate our steps [from earlier]({{< ref "#building-with-docker-for-arm64" >}}) into Drone Pipeline steps.
+
+First we instruct Drone to build our Go application with the specified environment variables.
+
+Then in an another step Drone will build the image with our `Dockerfile` and then push it to Docker hub using [the official Drone Docker plugin](http://plugins.drone.io/drone-plugins/drone-docker/).
+
+Our final Pipeline will look like this:
+
+{{<highlight text "linenos=table,hl_lines=99">}}
 kind: pipeline
 type: docker
 name: build
@@ -244,82 +302,30 @@ platform:
   arch: arm64
 
 steps:
-- name: test
-  image: golang:1.11
+- name: build
+  image: golang:1.13
   environment:
     CGO_ENABLED: "0"
+    GOOS: "linux"
+    GOARCH: "arm64"
   commands:
-  - go test ./...
-{{< / highlight >}}
+  - go build
+- name: distribute
+  image: plugins/docker
+  settings:
+    repo: octocat/hello-world
+    tags: v1.0.0
+    username:
+      from_secret: username
+    password:
+      from_secret: password
+{{</highlight>}}
 
-In the above example we define our Pipeline steps as a series of shell commands executed inside Docker containers.
+Drone will run the Pipeline each time code is pushed to the repository.
 
-### The `platform` Section
-
-Defines the target operating system and environment.
-
-{{< highlight text "linenos=table,hl_lines=5-7" >}}
-kind: pipeline
-type: docker
-name: build
-
-platform:
-  os: linux
-  arch: arm64
-{{< / highlight >}}
-
-
-### The `name` Attribute
-
-Defines the name of the Pipeline step.
-
-{{< highlight text "linenos=table,linenostart=9,hl_lines=2" >}}
-steps:
-- name: test
-  image: golang:1.11
-  environment:
-    CGO_ENABLED: "0"
-  commands:
-  - go test -v ./...
-{{< / highlight >}}
-
-### The `image` Attribute
-
-Defines the Docker image in which Pipeline commands are executed.
-
-{{< highlight text "linenos=table,linenostart=9,hl_lines=3" >}}
-steps:
-- name: test
-  image: golang:1.11
-  environment:
-    CGO_ENABLED: "0"
-  commands:
-  - go test -v ./...
-{{< / highlight >}}
-
-### The `commands` Attribute
-
-Defines the Pipeline commands executed inside the Docker container.
-
-{{< highlight text "linenos=table,linenostart=9,hl_lines=7-8" >}}
-steps:
-- name: test
-  image: golang:1.11
-  environment:
-    CGO_ENABLED: "0"
-  commands:
-  - go test -v ./...
-{{< / highlight >}}
-
-## Execution
-
-The Pipeline will execute every time we push code to our repository. We can login to Drone and inspect the Pipeline results:
-
-![Activate Repository](/screenshots/drone-build.png)
-
-# Continuous Delivery
-
-The final step is to automatically build and publish our Docker image to DockerHub. In order to publish and image to DockerHub we need to provide our credentials.
+{{<alert "warn">}}
+The tag "v1.0.0" is used for demonstration purposes. Make sure to change it to the tag you wish to use.
+{{</alert>}}
 
 ## Secrets
 
@@ -327,89 +333,51 @@ For security reasons we do not want to store our credentials in our yaml. Instea
 
 ![Manage Secret](/screenshots/drone-secrets.png)
 
-## Settings
+## Creating Docker Manifests
 
-Drone has a robust plugin system, including a plugin to build and publish images. Add a new step to the Docker Pipeline and configure the Docker plugin.
+Drone has support for [Docker Manifests](https://docs.docker.com/engine/reference/commandline/manifest/) via the [Drone Manifest plugin](http://plugins.drone.io/drone-plugins/drone-manifest/).
 
-{{< highlight text "linenos=table,linenostart=17,hl_lines=99" >}}
-- name: publish
+This means that we can also push manifests along with our image. To do that, we simply add an another step for our pipeline:
+
+{{<highlight text "linenos=table,hl_lines=27-37">}}
+kind: pipeline
+type: docker
+name: build
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: build
+  image: golang:1.13
+  environment:
+    CGO_ENABLED: "0"
+    GOOS: "linux"
+    GOARCH: "arm64"
+  commands:
+  - go build
+- name: distribute
   image: plugins/docker
   settings:
-    repo: hello-world
-    tags: latest
+    repo: octocat/hello-world
+    tags: v1.0.0
     username:
       from_secret: username
     password:
       from_secret: password
-{{< / highlight >}}
-
-### The `image` Attribute
-
-Defines the image used to build and publish the Docker image.
-
-{{< alert info >}}
-Drone plugins are Docker images that perform pre-defined tasks. Choose from hundreds of community plugins or create your own.
-{{< / alert >}}
-
-{{< highlight text "linenos=table,linenostart=17,hl_lines=2" >}}
-- name: publish
-  image: plugins/docker
+- name: manifest
+  image: plugins/manifest
   settings:
-    repo: hello-world
-    tags: latest
     username:
       from_secret: username
     password:
       from_secret: password
-{{< / highlight >}}
-
-### The `username` Attribute
-
-Provides the username used to authenticate with the Docker registry, source from the named secret.
-
-{{< highlight text "linenos=table,linenostart=17,hl_lines=6-7" >}}
-- name: publish
-  image: plugins/docker
-  settings:
-    repo: hello-world
-    tags: latest
-    username:
-      from_secret: username
-    password:
-      from_secret: password
-{{< / highlight >}}
-
-### The `password` Attribute
-
-Provides the password used to authenticate with the Docker registry, sourced from the named secret.
-
-{{< highlight text "linenos=table,linenostart=17,hl_lines=8-9" >}}
-- name: publish
-  image: plugins/docker
-  settings:
-    repo: hello-world
-    tags: latest
-    username:
-      from_secret: username
-    password:
-      from_secret: password
-{{< / highlight >}}
-
-### The `repo` Attribute
-
-Provides the Docker repository name.
-
-{{< highlight text "linenos=table,linenostart=17,hl_lines=4" >}}
-- name: publish
-  image: plugins/docker
-  settings:
-    repo: hello-world
-    tags: latest
-    username:
-      from_secret: username
-    password:
-      from_secret: password
-{{< / highlight >}}
+    target: octocat/hello-world:v1.0.0
+    template: octocat/hello-world:v1.0.0-OS-ARCH
+    platforms:
+      - linux/arm64
+{{</highlight>}}
 
 # Next Steps
 
