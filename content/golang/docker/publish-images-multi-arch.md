@@ -219,7 +219,7 @@ So our build command will look like this:
 docker run \
   -e CGO_ENABLED=0 \
   -e GOOS=linux \
-  -e GOARCH=arm64 \
+  -e GOARCH=amd64 \
   -w /app \
   -v ${PWD}:/app \
   golang:1.13 go build
@@ -260,7 +260,7 @@ Even though the steps above are easy, it makes sense to automate them.
 
 In order to do that, you will need to set up a [Git](https://git-scm.com) repository. For the rest of the tutorial we will assume, that the project is already on [GitHub](https://github.com/).
 
-In this section we configure [Drone](https://drone.io), an Open Source continuous integration system, to automatically build and test our code every time we push to GitHub. You can install Drone on your [own servers](https://docs.drone.io/installation/overview/), or you can use the free Cloud offering.
+In this section we configure [Drone](https://drone.io), an Open Source continuous integration system, to automatically build and test our code every time we push to GitHub. You can install Drone on your [own servers](https://docs.drone.io/installation/overview/), or you can use the [free Cloud offering](https://cloud.drone.io/).
 
 ## Activation
 
@@ -282,13 +282,13 @@ First we need to set some basic information for Drone about our pipeline:
 
 - The name of the pipeline. This can be anything you like.
 
-- We also set the platform we want to execute the pipeline on. This depends on what platform your Drone Runner is on.
+- We also set the platform we want to execute the pipeline on. This depends on what platform your [Drone Runner](https://docs.drone.io/installation/runners/docker/) is on.
 
 Then translate our steps [from earlier]({{< ref "#building-with-docker-for-arm64" >}}) into Drone Pipeline steps.
 
 First we instruct Drone to build our Go application with the specified environment variables.
 
-Then in an another step Drone will build the image with our `Dockerfile` and then push it to Docker hub using [the official Drone Docker plugin](http://plugins.drone.io/drone-plugins/drone-docker/).
+Then in an another step Drone will build the image with our `Dockerfile` and then push it to Docker hub using the official [Drone Docker plugin](http://plugins.drone.io/drone-plugins/drone-docker/).
 
 Our final Pipeline will look like this:
 
@@ -302,23 +302,24 @@ platform:
   arch: arm64
 
 steps:
-- name: build
-  image: golang:1.13
-  environment:
-    CGO_ENABLED: "0"
-    GOOS: "linux"
-    GOARCH: "arm64"
-  commands:
-  - go build
-- name: distribute
-  image: plugins/docker
-  settings:
-    repo: octocat/hello-world
-    tags: v1.0.0
-    username:
-      from_secret: username
-    password:
-      from_secret: password
+  - name: build
+    image: golang:1.13
+    environment:
+      CGO_ENABLED: "0"
+      GOOS: "linux"
+      GOARCH: "arm64"
+    commands:
+      - go build
+  
+  - name: distribute
+    image: plugins/docker
+    settings:
+      repo: octocat/hello-world
+      tags: v1.0.0
+      username:
+        from_secret: username
+      password:
+        from_secret: password
 {{</highlight>}}
 
 Drone will run the Pipeline each time code is pushed to the repository.
@@ -349,35 +350,176 @@ platform:
   arch: arm64
 
 steps:
-- name: build
-  image: golang:1.13
-  environment:
-    CGO_ENABLED: "0"
-    GOOS: "linux"
-    GOARCH: "arm64"
-  commands:
-  - go build
-- name: distribute
-  image: plugins/docker
-  settings:
-    repo: octocat/hello-world
-    tags: v1.0.0
-    username:
-      from_secret: username
-    password:
-      from_secret: password
-- name: manifest
-  image: plugins/manifest
-  settings:
-    username:
-      from_secret: username
-    password:
-      from_secret: password
-    target: octocat/hello-world:v1.0.0
-    template: octocat/hello-world:v1.0.0-OS-ARCH
-    platforms:
-      - linux/arm64
+  - name: build
+    image: golang:1.13
+    environment:
+      CGO_ENABLED: "0"
+      GOOS: "linux"
+      GOARCH: "arm64"
+    commands:
+      - go build
+  
+  - name: distribute
+    image: plugins/docker
+    settings:
+      repo: octocat/hello-world
+      tags: v1.0.0
+      username:
+        from_secret: username
+      password:
+        from_secret: password
+  -
+   name: manifest
+    image: plugins/manifest
+    settings:
+      username:
+        from_secret: username
+      password:
+        from_secret: password
+      target: octocat/hello-world:v1.0.0
+      template: octocat/hello-world:v1.0.0-OS-ARCH
+      platforms:
+        - linux/arm64
 {{</highlight>}}
+
+# Building for Multiple Architectures
+
+The examples so far have only built a single image for a specific architecture. However with Drone we can easily build and publish multiple images targeting multiple platforms at the same time!
+
+In order to showcase that feature we set up an example scenario with the following parameters and requirements:
+
+- We have **two** Drone Runners already set up on different machines, one on **ARM64** and the other on **AMD64** architecture.
+  
+- We would like to build our application and images for **both platforms**.
+  
+- We want to build a specific platform image with its corresponding runner. For example, **ARM64** images are **only** built on the **ARM64** runner, and not on the other.
+
+- We want to publish a **Docker manifest** along with our images.
+
+- We want to do this **all at once** with a single `.drone.yml`.
+
+{{<alert "info">}}
+Building for a specific platform on the corresponding Runner is an artificial constraint for the sake of the tutorial.
+<br><br>
+The example application written in Go can be built for any architecture on any runner.
+{{</alert>}}
+
+We can achieve our goal by reusing what we have already done [earlier]({{< ref "#building-with-docker" >}}) in this tutorial with slight modifications.
+
+First, we will need to create separate `Dockerfiles` for both architectures:
+
+- `Dockerfile.arm64.linux` for our [ARM64]({{< ref "#building-for-arm64" >}}) image
+- `Dockerfile.amd64.linux` for our [AMD]({{< ref "#building-for-amd64" >}}) image
+
+{{<alert "info">}}
+You can name the Dockerfiles as you wish, but using a pattern like this you will end up with easily recognizable and descriptive names.
+{{</alert>}}
+
+Then we use Drone's [multiple pipeline](https://docs.drone.io/configure/pipeline/multiple/#multi-platform) feature to create and run three pipelines in a single `.drone.yml` file:
+
+- `arm64-pipeline` will build and publish our **ARM64** image on the corresponding runner.
+- `amd64-pipeline` will build and publish our **AMD64** image on the corresponding runner.
+- `manifest-pipeline` will then publish a Docker manifest for our images. This can run anywhere, but only after the first two.
+
+{{<alert "info">}}
+You don't have to put "-pipeline" in the names, we just indicate here that they are well, pipelines.
+{{</alert>}}
+
+We will use our [already defined pipelines]({{< ref "#configuration" >}}). We can put all of them in the `.drone.yml`, separated by `---` and Drone will execute each one just fine. 
+
+{{<alert "info">}}
+You can read more about this YAML syntax <a href="https://stackoverflow.com/questions/50788277/why-3-dashes-hyphen-in-yaml-file/50788318">here</a>.
+{{</alert>}}
+
+Of course we need to modify them slightly, we need to name them differently, and also restrict each pipeline to each runner with the same architecture.
+
+We also make sure that our `manifest-pipeline` will only run after our builds have completed. We do this with the `depends_on` setting.
+
+Our three-pipeline `.drone.yml` will look like this:
+
+{{<highlight text "linenos=table,hl_lines=  3 7 15 22 32 36 44 51 61 73-75 77-79">}}
+kind: pipeline
+type: docker
+name: arm64-pipeline
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: build
+    image: golang:1.13
+    environment:
+      CGO_ENABLED: "0"
+      GOOS: "linux"
+      GOARCH: "arm64"
+    commands:
+      - go build
+  
+  - name: distribute
+    image: plugins/docker
+    settings:
+      dockerfile: "Dockerfile.arm64.linux"
+      repo: octocat/hello-world
+      tags: v1.0.0
+      username:
+        from_secret: username
+      password:
+        from_secret: password
+---
+kind: pipeline
+type: docker
+name: amd64-pipeline
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build
+    image: golang:1.13
+    environment:
+      CGO_ENABLED: "0"
+      GOOS: "linux"
+      GOARCH: "amd64"
+    commands:
+      - go build
+  
+  - name: distribute
+    image: plugins/docker
+    settings:
+      dockerfile: "Dockerfile.amd64.linux"
+      repo: octocat/hello-world
+      tags: v1.0.0
+      username:
+        from_secret: username
+      password:
+        from_secret: password
+---
+kind: pipeline
+type: docker
+name: manifest-pipeline
+
+steps:
+  - name: manifest
+    image: plugins/manifest
+    settings:
+      username:
+        from_secret: username
+      password:
+        from_secret: password
+      target: octocat/hello-world:v1.0.0
+      template: octocat/hello-world:v1.0.0-OS-ARCH
+      platforms:
+        - linux/arm64
+        - linux/amd64
+
+depends_on:
+  - amd64-pipeline
+  - arm64-pipeline
+{{</highlight>}}
+
+This configuration meets all our requirements, and our application will be automatically built and published for different platforms!
 
 # Next Steps
 
