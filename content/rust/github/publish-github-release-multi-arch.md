@@ -9,7 +9,7 @@ keywords:
 - github
 tags:
 - rust
-- githug
+- github
 - arm
 - arm64
 - amd64
