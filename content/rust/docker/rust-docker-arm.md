@@ -103,9 +103,9 @@ You can work around this problem by creating your own Docker image for cross com
 
 # Setup the Cross-Compilation Dockerfile
 
-The Cross-Compilation [`dockerfile`](https://docs.docker.com/engine/reference/builder/) should contain a ready to use Rust Standard Library with a plattform specific linker to compile the project.
+The Cross-Compilation [`Dockerfile`](https://docs.docker.com/engine/reference/builder/) should contain a ready to use Rust Standard Library with a plattform specific linker to compile the project.
 This image can later be used with Drone to automate the build process.
-Create the following `dockerfile`:
+Create the following `Dockerfile`:
 
 {{< highlight docker "linenos=table,hl_lines=99" >}}
 FROM rust:latest
@@ -156,7 +156,7 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 
 # Build and Use the Cross-Compilation Dockerfile
 
-To build the `dockerfile` simply execute the command:
+To build the `Dockerfile` simply execute the command:
 
 ```console
 $ docker build -t rust-aarch64 .
@@ -176,7 +176,7 @@ The image to use is the previous `rust-aarch64` image.
 
 # Setup the Application Dockerfile
 
-Create a [`dockerfile`](https://docs.docker.com/engine/reference/builder/) for your project:
+Create a [`Dockerfile`](https://docs.docker.com/engine/reference/builder/) for your project:
 
 {{< highlight docker "linenos=table,hl_lines=99" >}}
 FROM arm64v8/ubuntu
