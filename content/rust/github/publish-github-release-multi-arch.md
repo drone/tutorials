@@ -29,7 +29,7 @@ The Cross-Compilation Docker image from the previous tutorial supports only the 
 To add support for `armv7` you need to install a compatible linker and the Rust Standard Library.
 Add the highlighted lines to the `dockerfile` and build it.
 
-{{< highlight text "linenos=table,hl_lines=5-6 8" >}}
+{{< highlight docker "linenos=table,hl_lines=5-6 8" >}}
 FROM rust:latest
 RUN apt-get update \
  && apt-get install -y --no-install-recommends g++-aarch64-linux-gnu libc6-dev-arm64-cross \
@@ -226,7 +226,7 @@ Fist, login into Drone and activate your repository:
 Next, define a [Continuous Integration Pipeline](https://docs.drone.io/configure/pipeline/) for your project.
 Drone looks for a special `.drone.yml` file within repositories for the pipeline definition:
 
-{{< highlight text "linenos=table,hl_lines=99" >}}
+{{< highlight yaml "linenos=table,hl_lines=99" >}}
 kind: pipeline
 type: docker
 name: build
@@ -262,7 +262,7 @@ Defines the Docker image in which pipeline commands are executed.
 Here the cross compilation image is used.
 Remember to push the image to a registry or import it on the machine the Drone runner runs.
 
-{{< highlight text "linenos=table,linenostart=5,hl_lines=3" >}}
+{{< highlight yaml "linenos=table,linenostart=5,hl_lines=3" >}}
 steps:
 - name: build
   image: rust-multiarch
@@ -282,7 +282,7 @@ Defines the Pipeline commands executed inside the Docker container.
 The commands to execute are the same you have used to build the project.
 All assets are copied into the newly created assets folder.
 
-{{< highlight text "linenos=table,linenostart=9,hl_lines=5-11" >}}
+{{< highlight yaml "linenos=table,linenostart=9,hl_lines=5-11" >}}
 steps:
 - name: build
   image: rust-multiarch
@@ -320,7 +320,7 @@ Instead you can securely store your secrets in the Drone database, adding your G
 Drone has a robust plugin system, including a plugin to create GitHub releases.
 Add a new step to the pipeline and configure [the GitHub plugin](http://plugins.drone.io/drone-plugins/drone-github-release/).
 
-{{< highlight text "linenos=table,linenostart=12,hl_lines=99" >}}
+{{< highlight yaml "linenos=table,linenostart=12,hl_lines=99" >}}
 - name: publish
   image: plugins/github-release
   settings:
@@ -341,7 +341,7 @@ Drone plugins are Docker images that perform pre-defined tasks.
 Choose from hundreds of community plugins or create your own.
 {{< / alert >}}
 
-{{< highlight text "linenos=table,linenostart=12,hl_lines=2" >}}
+{{< highlight yaml "linenos=table,linenostart=12,hl_lines=2" >}}
 - name: publish
   image: plugins/github-release
   settings:
@@ -357,7 +357,7 @@ Choose from hundreds of community plugins or create your own.
 
 Provides the GitHub API token used to authenticate, sourced from the named secret.
 
-{{< highlight text "linenos=table,linenostart=12,hl_lines=4-5" >}}
+{{< highlight yaml "linenos=table,linenostart=12,hl_lines=4-5" >}}
 - name: publish
   image: plugins/github-release
   settings:
@@ -373,7 +373,7 @@ Provides the GitHub API token used to authenticate, sourced from the named secre
 
 This attribute defines the path to the binaries you wish to upload.
 
-{{< highlight text "linenos=table,linenostart=12,hl_lines=6" >}}
+{{< highlight yaml "linenos=table,linenostart=12,hl_lines=6" >}}
 - name: publish
   image: plugins/github-release
   settings:
@@ -389,7 +389,7 @@ This attribute defines the path to the binaries you wish to upload.
 
 Provides the title of the release.
 
-{{< highlight text "linenos=table,linenostart=12,hl_lines=7" >}}
+{{< highlight yaml "linenos=table,linenostart=12,hl_lines=7" >}}
 - name: publish
   image: plugins/github-release
   settings:
@@ -406,7 +406,7 @@ Provides the title of the release.
 This attribute defines the trigger of this step.
 In this case the step should only be executed when the build reason was a git tag commit.
 
-{{< highlight text "linenos=table,linenostart=12,hl_lines=8-9" >}}
+{{< highlight yaml "linenos=table,linenostart=12,hl_lines=8-9" >}}
 - name: publish
   image: plugins/github-release
   settings:
