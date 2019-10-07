@@ -3,7 +3,7 @@ date: 2000-01-01T00:00:00+00:00
 title: Create multi-Architecture GitHub releases for Rust projects
 author: KN4CK3R
 draft: true
-image: https://dummyimage.com/650x300/253d5f/ffffff
+image: /static/header-images/rust-github.png
 keywords:
 - rust
 - github
