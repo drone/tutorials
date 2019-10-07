@@ -27,7 +27,7 @@ To cross compile Rust projects this tutorial uses the sample Rust project and th
 The goal is to compile the Rust project for three different platforms: `amd64`, `aarch64` and `armv7`.
 The Cross-Compilation Docker image from the previous tutorial supports only the current platform (`amd64` in this case) and `aarch64`.
 To add support for `armv7` you need to install a compatible linker and the Rust Standard Library.
-Add the highlighted lines to the `dockerfile` and build it.
+Add the highlighted lines to the [`Dockerfile`](https://docs.docker.com/engine/reference/builder/) and build it.
 
 {{< highlight docker "linenos=table,hl_lines=5-6 8" >}}
 FROM rust:latest
