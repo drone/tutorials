@@ -74,7 +74,7 @@ $ cp target/armv7-unknown-linux-gnueabihf/debug/hello-world assets/hello-world-a
 
 # Creating a GitHub Release
 
-To create a GitHub release, you first need to [commit our project to GitHub](https://help.github.com/en/articles/creating-a-repository-on-github) and create a git tag for the current version:
+To create a GitHub release, you first need to [commit your project to GitHub](https://help.github.com/en/articles/creating-a-repository-on-github) and create a git tag for the current version:
 
 ```console
 $ git tag v1.0.0
@@ -371,7 +371,8 @@ Provides the GitHub API token used to authenticate, sourced from the named secre
 
 ### The `files` Attribute
 
-This attribute defines the path to the binaries you wish to upload.
+This attribute defines the path(s) to the binaries you wish to upload.
+[Glob patterns](https://en.wikipedia.org/wiki/Glob_(programming)) are supported to find files.
 
 {{< highlight yaml "linenos=table,linenostart=12,hl_lines=6" >}}
 - name: publish
@@ -388,6 +389,9 @@ This attribute defines the path to the binaries you wish to upload.
 ### The `title` Attribute
 
 Provides the title of the release.
+A `note` attribute can be added too which contains the body text.
+It is possible to use a simple string or file reference.
+For example with a file it is easy to display the whole changelog for this release.
 
 {{< highlight yaml "linenos=table,linenostart=12,hl_lines=7" >}}
 - name: publish
