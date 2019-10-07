@@ -19,7 +19,7 @@ This guide will walk you through the steps required to build multi-architecture 
 This guide assumes you have a basic understanding of Rust, Docker and GitHub.
 
 {{< alert info >}}
-To cross compile Rust projects this tutorial uses the sample Rust project and the Cross-Compilation Docker image presented in the tutorial {{< ref "rust-docker-arm.md" >}}.
+To cross compile Rust projects this tutorial uses the sample Rust project and the Cross-Compilation Docker image presented in the tutorial {{< ref "rust-docker-arm64.md" >}}.
 {{< / alert >}}
 
 # Cross Compiling the Rust Project
