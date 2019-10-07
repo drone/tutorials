@@ -3,7 +3,7 @@ date: 2000-01-01T00:00:00+00:00
 title: Publishing Rust Docker Images for ARM
 author: KN4CK3R
 draft: true
-image: https://dummyimage.com/650x300/253d5f/ffffff
+image: /header-images/rust-docker.png
 keywords:
 - rust
 - docker
