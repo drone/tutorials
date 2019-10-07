@@ -107,7 +107,7 @@ The Cross-Compilation [`dockerfile`](https://docs.docker.com/engine/reference/bu
 This image can later be used with Drone to automate the build process.
 Create the following `dockerfile`:
 
-{{< highlight text "linenos=table,hl_lines=99" >}}
+{{< highlight docker "linenos=table,hl_lines=99" >}}
 FROM rust:latest
 RUN apt-get update \
  && apt-get install -y --no-install-recommends g++-aarch64-linux-gnu libc6-dev-arm64-cross \
@@ -120,7 +120,7 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 The `FROM` instruction set the base image for subsequent instructions.
 This sets the official Rust image as the base so you don't need to install the complete rust toolchain but only the cross compilation features.
 
-{{< highlight text "linenos=table,hl_lines=1" >}}
+{{< highlight docker "linenos=table,hl_lines=1" >}}
 FROM rust:latest
 RUN apt-get update \
  && apt-get install -y --no-install-recommends g++-aarch64-linux-gnu libc6-dev-arm64-cross \
@@ -133,7 +133,7 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 The `RUN` instruction executes a command in the image context.
 In this case it installs the linker you need to compile for the `aarch64` platform and instructs rustup to add the Rust Standard Library.
 
-{{< highlight text "linenos=table,hl_lines=2-4" >}}
+{{< highlight docker "linenos=table,hl_lines=2-4" >}}
 FROM rust:latest
 RUN apt-get update \
  && apt-get install -y --no-install-recommends g++-aarch64-linux-gnu libc6-dev-arm64-cross \
@@ -146,7 +146,7 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 The `ENV` instruction sets an environment variable.
 Here you specify which linker `cargo` should use.
 
-{{< highlight text "linenos=table,hl_lines=5" >}}
+{{< highlight docker "linenos=table,hl_lines=5" >}}
 FROM rust:latest
 RUN apt-get update \
  && apt-get install -y --no-install-recommends g++-aarch64-linux-gnu libc6-dev-arm64-cross \
@@ -178,7 +178,7 @@ The image to use is the previous `rust-aarch64` image.
 
 Create a [`dockerfile`](https://docs.docker.com/engine/reference/builder/) for your project:
 
-{{< highlight text "linenos=table,hl_lines=99" >}}
+{{< highlight docker "linenos=table,hl_lines=99" >}}
 FROM arm64v8/ubuntu
 ADD target/aarch64-unknown-linux-gnu/debug/hello-world /bin
 ENTRYPOINT [ "/bin/hello-world" ]
@@ -189,7 +189,7 @@ ENTRYPOINT [ "/bin/hello-world" ]
 The `ADD` instruction copies the binary to the target directory in the image.
 This adds the `hello-world` binary to the image.
 
-{{< highlight text "linenos=table,hl_lines=2" >}}
+{{< highlight docker "linenos=table,hl_lines=2" >}}
 FROM arm64v8/ubuntu
 ADD target/aarch64-unknown-linux-gnu/debug/hello-world /bin
 ENTRYPOINT [ "/bin/hello-world" ]
@@ -200,7 +200,7 @@ ENTRYPOINT [ "/bin/hello-world" ]
 The `ENTRYPOINT` instruction configures the default command that is executed when the container starts.
 This is configured to execute the `hello-world` binary.
 
-{{< highlight text "linenos=table,hl_lines=3" >}}
+{{< highlight docker "linenos=table,hl_lines=3" >}}
 FROM arm64v8/ubuntu
 ADD target/aarch64-unknown-linux-gnu/debug/hello-world /bin
 ENTRYPOINT [ "/bin/hello-world" ]
@@ -259,7 +259,7 @@ Fist, login into Drone and activate your repository:
 Next, define a [Continuous Integration Pipeline](https://docs.drone.io/configure/pipeline/) for your project.
 Drone looks for a special `.drone.yml` file within repositories for the pipeline definition:
 
-{{< highlight text "linenos=table,hl_lines=99" >}}
+{{< highlight yaml "linenos=table,hl_lines=99" >}}
 kind: pipeline
 type: docker
 name: build
@@ -280,7 +280,7 @@ Defines the Docker image in which pipeline commands are executed.
 Here the cross compile image is used.
 Remember to push the image to a registry or import it on the machine the Drone runner runs.
 
-{{< highlight text "linenos=table,linenostart=5,hl_lines=3" >}}
+{{< highlight yaml "linenos=table,linenostart=5,hl_lines=3" >}}
 steps:
 - name: build
   image: rust-aarch64
@@ -293,7 +293,7 @@ steps:
 Defines the pipeline commands executed inside the Docker container.
 The command to execute is the same you have used to build the project.
 
-{{< highlight text "linenos=table,linenostart=9,hl_lines=5" >}}
+{{< highlight yaml "linenos=table,linenostart=9,hl_lines=5" >}}
 steps:
 - name: build
   image: rust-aarch64
@@ -325,7 +325,7 @@ Instead you can securely store your secrets in the Drone database, adding your D
 Drone has a robust plugin system, including a plugin to build and publish images.
 Add a new step to the Docker Pipeline and configure the [Docker plugin](http://plugins.drone.io/drone-plugins/drone-docker/).
 
-{{< highlight text "linenos=table,linenostart=17,hl_lines=99" >}}
+{{< highlight yaml "linenos=table,linenostart=17,hl_lines=99" >}}
 - name: publish
   image: plugins/docker
   settings:
@@ -346,7 +346,7 @@ Drone plugins are Docker images that perform pre-defined tasks.
 Choose from hundreds of community plugins or create your own.
 {{< / alert >}}
 
-{{< highlight text "linenos=table,linenostart=17,hl_lines=2" >}}
+{{< highlight yaml "linenos=table,linenostart=17,hl_lines=2" >}}
 - name: publish
   image: plugins/docker
   settings:
@@ -362,7 +362,7 @@ Choose from hundreds of community plugins or create your own.
 
 Provides the username used to authenticate with the Docker registry, source from the named secret.
 
-{{< highlight text "linenos=table,linenostart=17,hl_lines=6-7" >}}
+{{< highlight yaml "linenos=table,linenostart=17,hl_lines=6-7" >}}
 - name: publish
   image: plugins/docker
   settings:
@@ -378,7 +378,7 @@ Provides the username used to authenticate with the Docker registry, source from
 
 Provides the password used to authenticate with the Docker registry, sourced from the named secret.
 
-{{< highlight text "linenos=table,linenostart=17,hl_lines=8-9" >}}
+{{< highlight yaml "linenos=table,linenostart=17,hl_lines=8-9" >}}
 - name: publish
   image: plugins/docker
   settings:
@@ -394,7 +394,7 @@ Provides the password used to authenticate with the Docker registry, sourced fro
 
 Provides the Docker repository name.
 
-{{< highlight text "linenos=table,linenostart=17,hl_lines=4" >}}
+{{< highlight yaml "linenos=table,linenostart=17,hl_lines=4" >}}
 - name: publish
   image: plugins/docker
   settings:
