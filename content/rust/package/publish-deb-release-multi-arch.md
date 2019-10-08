@@ -3,7 +3,7 @@ date: 2000-01-01T00:00:00+00:00
 title: Publish multi-Architecture Debian packages for Rust
 author: KN4CK3R
 draft: true
-image: /static/header-images/rust-deb.png
+image: https://dummyimage.com/650x300/253d5f/ffffff
 keywords:
 - rust
 - deb
