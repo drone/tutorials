@@ -356,6 +356,9 @@ body {
   padding: 1px;
   max-width: 100%;
 }
+.content li img {
+  margin-top: 10px;
+}
 .content > table {
   border: 1px solid #EFF0F2;
   width: 100%;
@@ -506,7 +509,7 @@ body {
 }
 .featured .cards .image {
   padding-top: 200px;
-  background-size: contain;
+  background-size: cover;
 }
 .featured .cards .body {
   padding: 30px;
@@ -585,7 +588,7 @@ body {
 .header .button {
   color: #FFF;
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.1);
+  background: hsla(0, 0%, 100%, 0.1);
   padding: 4px 20px 4px 25px;
   margin-right: 20px;
   border-radius: 3px;

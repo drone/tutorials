@@ -2,9 +2,9 @@
 date: 2000-01-01T00:00:00+00:00
 title: Publishing Go Docker Images on Linux
 author: bradrydzewski
-image: https://dummyimage.com/650x300/253d5f/ffffff
-url: publish-golang-docker-images
+image: /illustrations/docker_1024x512px.png
 featured: true
+url: publish-golang-docker-images
 keywords:
 - golang
 - docker
@@ -161,7 +161,7 @@ $ docker run -p 8080:8080 hello-world
 
 # Continuous Integration
 
-Once our project is ready and is pushed to GitHub we can automate the build and test processing using continuous integration.
+Once our project is ready and is pushed to GitHub we can automate the build and test process using continuous integration.
 
 In this section we configure [Drone](https://drone.io), an Open Source continuous integration system, to automatically build and test our code every time we push to GitHub. You can install Drone on your own servers, or you can use the free Cloud offering.
 
