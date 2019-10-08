@@ -165,145 +165,7 @@ $ hello-world
 Hello, world!
 ```
 
-# Simplify Package Creation
-
-The package creation should be automated to better fit into a continuous integration environment.
-A simple shell script (call it `pack.sh`) can combine all needed steps and can be transformed into a Drone plugin later.
-
-```sh
-#! /bin/sh
-set -e
-
-mkdir /tmp/_package
-cp -r $PLUGIN_APPLICATION_SOURCE /tmp/_package
-
-mkdir /tmp/_package/DEBIAN
-cp $PLUGIN_METAFILE_SOURCE /tmp/_package/DEBIAN/control
-echo "Architecture: ${PLUGIN_ARCHITECTURE}" >> /tmp/_package/DEBIAN/control
-
-dpkg-deb --build /tmp/_package
-
-mv /tmp/_package.deb $PLUGIN_DESTINATION
-```
-
-The script performs all previous steps with input from some environment variables.
-
-## The `PLUGIN_APPLICATION_SOURCE` Variable
-
-This environment variable contains the path to the binaries included in the package.
-
-## The `PLUGIN_METAFILE_SOURCE` Variable
-
-This environment variable contains the path to the metadata file for the package.
-Because of the different `Architecture` attribute for every platform this line must be omitted in the template and inserted on the fly.
-
-## The `PLUGIN_ARCHITECTURE` Variable
-
-This environment variable contains the architecture of the package which gets inserted into the metadata file.
-
-## The `PLUGIN_DESTINATION` Variable
-
-This environment variable contains the full path where the created package should be placed
-
-## Usage
-
-To use the script the following folder structure is assumed:
-
-```
-project
-|-> package-assets
-|---> armv7
-|-----> bin
-|-------> hello-world
-|---> amd64
-|-----> bin
-|-------> hello-world
-|-> package_metadata
-```
-
-Subsequently the script can create packages for both platforms:
-
-```console
-$ PLUGIN_APPLICATION_SOURCE=./package-assets/armv7 \
-  PLUGIN_METAFILE_SOURCE=./package_metadata \
-  PLUGIN_ARCHITECTURE=armv7 \
-  PLUGIN_DESTINATION=./hello-world_1.0-1_armv7.deb \
-  ./pack.sh
-$ PLUGIN_APPLICATION_SOURCE=./package-assets/amd64 \
-  PLUGIN_METAFILE_SOURCE=./package_metadata \
-  PLUGIN_ARCHITECTURE=amd64 \
-  PLUGIN_DESTINATION=./hello-world_1.0-1_amd64.deb \
-  ./pack.sh
-```
-
-## Setup a Package Creation Image
-
-This script can be turned into a Drone plugin by creating a Docker image.
-To do this simply create a [`Dockerfile`](https://docs.docker.com/engine/reference/builder/) with the following content:
-
-{{< highlight docker "linenos=table,hl_lines=99" >}}
-FROM debian
-COPY pack.sh /bin/
-RUN chmod +x /bin/pack.sh
-ENTRYPOINT /bin/pack.sh
-{{< / highlight >}}
-
-Build the image with the name `package-build` to make it available for Docker.
-
-```console
-$ docker build -t package-build .
-```
-
-{{< alert info >}}
-Drone plugins are Docker images that perform pre-defined tasks.
-Choose from hundreds of community plugins or create your own.
-{{< / alert >}}
-
-### `FROM` Instruction
-
-The `FROM` instruction set the base image for subsequent instructions.
-This sets the official Debian image as the base which contains all the essential tools to build a package.
-
-{{< highlight docker "linenos=table,hl_lines=1" >}}
-FROM debian
-COPY pack.sh /bin/
-RUN chmod +x /bin/pack.sh
-ENTRYPOINT /bin/pack.sh
-{{< / highlight >}}
-
-### `COPY` Instruction
-
-The `COPY` instruction copies a file from the host into the image.
-
-{{< highlight docker "linenos=table,hl_lines=2" >}}
-FROM debian
-COPY pack.sh /bin/
-RUN chmod +x /bin/pack.sh
-ENTRYPOINT /bin/pack.sh
-{{< / highlight >}}
-
-### `RUN` Instruction
-
-The `RUN` instruction executes a command in the image context.
-In this the copied script gets marked as executable.
-
-{{< highlight docker "linenos=table,hl_lines=3" >}}
-FROM debian
-COPY pack.sh /bin/
-RUN chmod +x /bin/pack.sh
-ENTRYPOINT /bin/pack.sh
-{{< / highlight >}}
-
-### `ENTRYPOINT` Instruction
-
-The `ENTRYPOINT` instruction tells docker what it should execute when the container gets started.
-
-{{< highlight docker "linenos=table,hl_lines=4" >}}
-FROM debian
-COPY pack.sh /bin/
-RUN chmod +x /bin/pack.sh
-ENTRYPOINT /bin/pack.sh
-{{< / highlight >}}
+Now the build process can be automated with Drone!
 
 # Continuous Integration and Delivery
 
@@ -331,51 +193,53 @@ steps:
   image: debian
   commands:
     - mkdir assets
-    - mkdir package-assets
-    - mkdir -p package-assets/armv7/bin
-    - mkdir -p package-assets/arm64/bin
-    - mkdir -p package-assets/amd64/bin
 
 - name: build
   image: rust-multiarch
   commands:
     - cargo build
-    - cp target/debug/hello-world package-assets/amd64/bin
     - cargo build --target=aarch64-unknown-linux-gnu
-    - cp target/aarch64-unknown-linux-gnu/debug/hello-world package-assets/arm64/bin
     - cargo build --target=armv7-unknown-linux-gnueabihf
-    - cp target/armv7-unknown-linux-gnueabihf/debug/hello-world package-assets/armv7/bin
 
 - name: create-armv7-package
-  image: package-build
-  settings:
-    application_source: ./package-assets/armv7
-    metafile_source: ./package_metadata
-    architecture: armv7
-    destination: ./assets/hello-world_1.0-1_armv7.deb
+  image: debian
+  commands:
+    - mkdir -p /tmp/_package/bin
+    - cp target/armv7-unknown-linux-gnueabihf/debug/hello-world
+    - mkdir /tmp/_package/DEBIAN
+    - cp package_metadata /tmp/_package/DEBIAN/control
+    - echo "Architecture: armv7" >> /tmp/_package/DEBIAN/control
+    - dpkg-deb --build /tmp/_package
+    - mv /tmp/_package.deb assets/hello-world_1.0-1_armv7.deb
 
 - name: create-arm64-package
-  image: package-build
-  settings:
-    application_source: ./package-assets/arm64
-    metafile_source: ./package_metadata
-    architecture: arm64
-    destination: ./assets/hello-world_1.0-1_arm64.deb
+  image: debian
+  commands:
+    - mkdir -p /tmp/_package/bin
+    - cp target/aarch64-unknown-linux-gnu/debug/hello-world /tmp/_package/bin
+    - mkdir /tmp/_package/DEBIAN
+    - cp package_metadata /tmp/_package/DEBIAN/control
+    - echo "Architecture: arm64" >> /tmp/_package/DEBIAN/control
+    - dpkg-deb --build /tmp/_package
+    - mv /tmp/_package.deb assets/hello-world_1.0-1_arm64.deb
 
 - name: create-amd64-package
-  image: package-build
-  settings:
-    application_source: ./package-assets/amd64
-    metafile_source: ./package_metadata
-    architecture: amd64
-    destination: ./assets/hello-world_1.0-1_amd64.deb
+  image: debian
+  commands:
+    - mkdir -p /tmp/_package/bin
+    - cp target/debug/hello-world /tmp/_package/bin
+    - mkdir /tmp/_package/DEBIAN
+    - cp package_metadata /tmp/_package/DEBIAN/control
+    - echo "Architecture: amd64" >> /tmp/_package/DEBIAN/control
+    - dpkg-deb --build /tmp/_package
+    - mv /tmp/_package.deb assets/hello-world_1.0-1_amd64.deb
 
 - name: publish
   image: plugins/github-release
   settings:
     api_key:
       from_secret: github_token
-    files: assets/*
+    files: assets/*.deb
     title: Release Title
 
 trigger:
@@ -397,10 +261,6 @@ The `package-assets` folder is used for the package application data.
   image: debian
   commands:
     - mkdir assets
-    - mkdir package-assets
-    - mkdir -p package-assets/armv7/bin
-    - mkdir -p package-assets/arm64/bin
-    - mkdir -p package-assets/amd64/bin
 {{< / highlight >}}
 
 ### The `build` Step
@@ -408,45 +268,55 @@ The `package-assets` folder is used for the package application data.
 In this step the project gets compiled for the `amd64`, `arm64` and `armv7` platform.
 After every build the resulting executable is copied into the `package-assets` folder.
 
-{{< highlight yaml "linenos=table,linenostart=15" >}}
+{{< highlight yaml "linenos=table,linenostart=11" >}}
 - name: build
   image: rust-multiarch
   commands:
     - cargo build
-    - cp target/debug/hello-world package-assets/amd64/bin
     - cargo build --target=aarch64-unknown-linux-gnu
-    - cp target/aarch64-unknown-linux-gnu/debug/hello-world package-assets/arm64/bin
     - cargo build --target=armv7-unknown-linux-gnueabihf
-    - cp target/armv7-unknown-linux-gnueabihf/debug/hello-world package-assets/armv7/bin
 {{< / highlight >}}
 
 ### The `create-xxx-package` Steps
 
 These steps are used to build the packages for every platform.
-The `settings` section contains all the data which is used in environment variables inside the shell script.
+The `commands` are identical to the manual steps.
+The build directory for the package is outside of the project folder so a cleanup is not necessary.
+The only interesting part is the `echo "Architecture: armv7" >> /tmp/_package/DEBIAN/control` which inserts the architecture definition into the `DEBIAN/contro` file on the fly.
+Because of the different `Architecture` attribute for every platform this line must be omitted in the template file `package_metadata`.
 
-{{< highlight yaml "linenos=table,linenostart=25" >}}
+{{< highlight yaml "linenos=table,linenostart=18" >}}
 - name: create-armv7-package
-  image: package-build
-  settings:
-    application_source: ./package-assets/armv7
-    metafile_source: ./package_metadata
-    architecture: armv7
-    destination: ./assets/hello-world_1.0-1_armv7.deb
+  image: debian
+  commands:
+    - mkdir -p /tmp/_package/bin
+    - cp target/armv7-unknown-linux-gnueabihf/debug/hello-world
+    - mkdir /tmp/_package/DEBIAN
+    - cp package_metadata /tmp/_package/DEBIAN/control
+    - echo "Architecture: armv7" >> /tmp/_package/DEBIAN/control
+    - dpkg-deb --build /tmp/_package
+    - mv /tmp/_package.deb assets/hello-world_1.0-1_armv7.deb
 {{< / highlight >}}
+
+{{< alert info >}}
+As you can see this step needs to be duplicated for every platform.
+To make the handling easier it should be converted into a Drone plugin.
+Drone plugins are Docker images that perform pre-defined tasks.
+Choose from hundreds of community plugins or create your own.
+{{< / alert >}}
 
 ### The `publish` Step
 
 Here the final packages get published as a GitHub release.
 More informations about the configuration of this step can be found in the tutorial {{< ref "publish-github-release-multi-arch.md" >}}.
 
-{{< highlight yaml "linenos=table,linenostart=49" >}}
+{{< highlight yaml "linenos=table,linenostart=51" >}}
 - name: publish
   image: plugins/github-release
   settings:
     api_key:
       from_secret: github_token
-    files: assets/*
+    files: assets/*.deb
     title: Release Title
 {{< / highlight >}}
 
