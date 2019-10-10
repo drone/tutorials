@@ -99,7 +99,7 @@ It is time to build a Docker image with our application in it.
 The common practice for Go projects is to separate the build process of the application from the distribution image.
 This approach works better with Continuos Integration and Delivery, allowing more caching opportunities.
 
-However, you could also use [multi-stage](https://docs.docker.com/develop/develop-images/multistage-build/) build with a single Dockerfile if you wanted.
+However, you could also use [multi-stage](https://docs.docker.com/develop/develop-images/multistage-build/) build with a single Dockerfile if you want to .
 
 {{<alert "info">}}
 If you are not familiar with Dockerfiles, you can read more about them <a href="https://docs.docker.com/engine/reference/builder/">here</a>.
@@ -112,11 +112,7 @@ First we build the application using Docker with the official Go image.
 We will need to set three environment variables for the Go compiler:
 
 - `CGO_ENABLED=0`: This one disables [CGo](https://github.com/golang/go/wiki/cgo), it is only needed in our case because we will distribute with an [Alpine Linux](https://alpinelinux.org/) image, and it would run into problems with linking to `libc`.
-
-
 - `GOOS=linux`: This one sets the target operating system to Linux.
-
-
 - `GOARCH=arm64`: This one sets the target **ARM64** architecture.
 
 {{<alert "info">}}
@@ -187,7 +183,7 @@ On linux, simply use:
 docker image ls | grep hello-world
 ```
 
-You should a similar output:
+You should see a similar output:
 ```
 hello-world latest 8fd45a7d5056 2 minutes ago 11.5MB
 ```
@@ -228,8 +224,8 @@ docker run \
 And then our `Dockerfile`:
 
 {{<highlight text "linenos=table,hl_lines=2">}}
-# We use the default AMD64 version of Alpine.
-FROM alpine
+# We use the AMD64 version of Alpine. 
+FROM amd64/alpine
 
 WORKDIR /app
 
@@ -277,11 +273,8 @@ We will achieve the same result we did in [Our Docker build steps]({{< ref "#bui
 First we need to set some basic information for Drone about our pipeline:
 
 - The kind of the `.yml` file. In most cases this will be `pipeline`.
-
 - The type of our pipeline. We want to use Docker containers for each step.
-
 - The name of the pipeline. This can be anything you like.
-
 - We also set the platform we want to execute the pipeline on. This depends on what platform your [Drone Runner](https://docs.drone.io/installation/runners/docker/) is on.
 
 Then translate our steps [from earlier]({{< ref "#building-with-docker-for-arm64" >}}) into Drone Pipeline steps.
@@ -296,10 +289,6 @@ Our final Pipeline will look like this:
 kind: pipeline
 type: docker
 name: build
-
-platform:
-  os: linux
-  arch: arm64
 
 steps:
   - name: build
@@ -340,14 +329,10 @@ Drone has support for [Docker Manifests](https://docs.docker.com/engine/referenc
 
 This means that we can also push manifests along with our image. To do that, we simply add an another step for our pipeline:
 
-{{<highlight text "linenos=table,hl_lines=27-37">}}
+{{<highlight text "linenos=table,hl_lines=25-35">}}
 kind: pipeline
 type: docker
 name: build
-
-platform:
-  os: linux
-  arch: arm64
 
 steps:
   - name: build
@@ -368,8 +353,8 @@ steps:
         from_secret: username
       password:
         from_secret: password
-  -
-   name: manifest
+
+  - name: manifest
     image: plugins/manifest
     settings:
       username:
@@ -388,14 +373,10 @@ The examples so far have only built a single image for a specific architecture. 
 
 In order to showcase that feature we set up an example scenario with the following parameters and requirements:
 
-- We have **two** Drone Runners already set up on different machines, one on **ARM64** and the other on **AMD64** architecture.
-  
+- We have **two Drone Runners** already set up on different machines, one on **ARM64** and the other on **AMD64** architecture.
 - We would like to build our application and images for **both platforms**.
-  
-- We want to build a specific platform image with its corresponding runner. For example, **ARM64** images are **only** built on the **ARM64** runner, and not on the other.
-
+- We want to build a **specific platform** image with its **corresponding runner**. For example, ARM64 images are only built on the ARM64 runner, and not on the other.
 - We want to publish a **Docker manifest** along with our images.
-
 - We want to do this **all at once** with a single `.drone.yml`.
 
 {{<alert "info">}}
@@ -409,7 +390,7 @@ We can achieve our goal by reusing what we have already done [earlier]({{< ref "
 First, we will need to create separate `Dockerfiles` for both architectures:
 
 - `Dockerfile.arm64.linux` for our [ARM64]({{< ref "#building-for-arm64" >}}) image
-- `Dockerfile.amd64.linux` for our [AMD]({{< ref "#building-for-amd64" >}}) image
+- `Dockerfile.amd64.linux` for our [AMD64]({{< ref "#building-for-amd64" >}}) image
 
 {{<alert "info">}}
 You can name the Dockerfiles as you wish, but using a pattern like this you will end up with easily recognizable and descriptive names.
@@ -431,13 +412,19 @@ We will use our [already defined pipelines]({{< ref "#configuration" >}}). We ca
 You can read more about this YAML syntax <a href="https://stackoverflow.com/questions/50788277/why-3-dashes-hyphen-in-yaml-file/50788318">here</a>.
 {{</alert>}}
 
-Of course we need to modify them slightly, we need to name them differently, and also restrict each pipeline to each runner with the same architecture.
+Of course we need to modify them slightly, we need to name them differently, and also restrict each pipeline to each runner that has the same operating system and architecture with the `platform` option.
+
+{{<alert "info">}}
+The default GOOS and GOARCH values match the host operating system and architecture by default. Since we defined the runner platforms for each pipeline, we can omit them.
+<br><br>
+For the same reason we could also omit the platform-specific settings in our Dockerfiles, for example we could simply use the "alpine" image instead of "arm64v8/alpine".
+{{</alert>}}
 
 We also make sure that our `manifest-pipeline` will only run after our builds have completed. We do this with the `depends_on` setting.
 
 Our three-pipeline `.drone.yml` will look like this:
 
-{{<highlight text "linenos=table,hl_lines=  3 7 15 22 32 36 44 51 61 73-75 77-79">}}
+{{<highlight text "linenos=table,hl_lines= 3 7 20 30 34 47 57 69-71 73-75">}}
 kind: pipeline
 type: docker
 name: arm64-pipeline
@@ -451,8 +438,6 @@ steps:
     image: golang:1.13
     environment:
       CGO_ENABLED: "0"
-      GOOS: "linux"
-      GOARCH: "arm64"
     commands:
       - go build
   
@@ -480,8 +465,6 @@ steps:
     image: golang:1.13
     environment:
       CGO_ENABLED: "0"
-      GOOS: "linux"
-      GOARCH: "amd64"
     commands:
       - go build
   
