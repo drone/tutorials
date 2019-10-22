@@ -3,7 +3,7 @@ date: 2000-01-01T00:00:00+00:00
 title: Create multi-Architecture GitHub releases for Rust projects
 author: KN4CK3R
 draft: true
-image: /static/header-images/rust-github.png
+image: https://dummyimage.com/650x300/253d5f/ffffff
 keywords:
 - rust
 - github
@@ -81,132 +81,16 @@ $ git tag v1.0.0
 $ git push origin v1.0.0
 ```
 
-To create a release from this tag you could use the GitHub user interface or the GitHub API.
-This tutorial shows the usage of the API with `curl`.
+On the `Releases` page click the `Draft a new release` button.
+This forwards you to a form where you must type in all needed informations.
+At the bottom you can attach the created assets.
 
-{{< alert info >}}
-To use the GitHub API you need [a token for authorization](https://github.com/settings/tokens).
-If you don't have one, create it now.
-{{< / alert >}}
+![Create a new release](/screenshots/rust-github-draft.png)
 
-First you need to [create a release](https://developer.github.com/v3/repos/releases/#create-a-release) for the tag:
+To finish the process click the green `Publish release` button.
+If you have a look at the GitHub release page again you will see the release with all three assets.
 
-```console
-$ curl -X POST \
-  -H "Content-Type:application/json" \
-  -H "Authorization: token <your api token>" \
-  https://api.github.com/repos/<your GitHub username>/<the repository name>/releases \
-  -d '{"tag_name":"<name of the tag>", "name":"<title of this release>", "body":"<description of this release>"}'
-```
-
-This performs as `POST` request to the GitHub API.
-You need to provide three informations for this to work: a token for authorization, your username on GitHub with the name of the repository as parts of the url.
-The last line provides the content for the release.
-The `tag_name` must match the name of the tag created the step above.
-`name` and `body` specify the title and the description of the release.
-
-```console
-$ curl -X POST -H "Content-Type:application/json" -H "Authorization: token f856c80e5929250b646b8ab30b8b065ab22fxxxx" https://api.github.com/repos/KN4CK3R/HelloWorld/releases -d '{"tag_name":"v1.0.0", "name":"Hello World v1.0.0", "body":"The description of this release."}'
-{
-  "url": "https://api.github.com/repos/KN4CK3R/HelloWorld/releases/20394456",
-  "assets_url": "https://api.github.com/repos/KN4CK3R/HelloWorld/releases/20394456/assets",
-  "upload_url": "https://uploads.github.com/repos/KN4CK3R/HelloWorld/releases/20394456/assets{?name,label}",
-  "html_url": "https://github.com/KN4CK3R/HelloWorld/releases/tag/v1.0.0",
-  "id": 20394456,
-  "node_id": "MDc6UmVsZWFzZTIwMzk0NDU2",
-  "tag_name": "v1.0.0",
-  "target_commitish": "master",
-  "name": "Hello World v1.0.0",
-  "draft": false,
-  "author": {
-    "login": "KN4CK3R",
-    "id": 1666336,
-    "node_id": "MDQ6VXNlcjE2NjYzMzY=",
-    "avatar_url": "https://avatars2.githubusercontent.com/u/1666336?v=4",
-    "gravatar_id": "",
-    "url": "https://api.github.com/users/KN4CK3R",
-    "html_url": "https://github.com/KN4CK3R",
-    "followers_url": "https://api.github.com/users/KN4CK3R/followers",
-    "following_url": "https://api.github.com/users/KN4CK3R/following{/other_user}",
-    "gists_url": "https://api.github.com/users/KN4CK3R/gists{/gist_id}",
-    "starred_url": "https://api.github.com/users/KN4CK3R/starred{/owner}{/repo}",
-    "subscriptions_url": "https://api.github.com/users/KN4CK3R/subscriptions",
-    "organizations_url": "https://api.github.com/users/KN4CK3R/orgs",
-    "repos_url": "https://api.github.com/users/KN4CK3R/repos",
-    "events_url": "https://api.github.com/users/KN4CK3R/events{/privacy}",
-    "received_events_url": "https://api.github.com/users/KN4CK3R/received_events",
-    "type": "User",
-    "site_admin": false
-  },
-  "prerelease": false,
-  "created_at": "2019-10-01T11:15:27Z",
-  "published_at": "2019-10-01T19:05:41Z",
-  "assets": [
-
-  ],
-  "tarball_url": "https://api.github.com/repos/KN4CK3R/HelloWorld/tarball/v1.0.0",
-  "zipball_url": "https://api.github.com/repos/KN4CK3R/HelloWorld/zipball/v1.0.0",
-  "body": "The description of this release."
-}
-```
-
-You must use the `upload_url` to upload the three assets to the newly created release:
-
-```console
-$ curl \
-  -H "Authorization: token <your api token>" \
-  -H "Content-Type: <mime type>" \
-  --data-binary @<path to file> \
-  <the upload url>?name=<file name>
-```
-
-The `Content-Type` header must contain the mime type of the assets.
-(Hint: You can get the mime type with `file -b --mime-type /path/to/file`).
-The url to call is the `upload_url` you got as response with an additional `name` parameter for the filename.
-
-```console
-$ curl -H "Authorization: token f856c80e5929250b646b8ab30b8b065ab22fxxxx" -H "Content-Type: application/x-pie-executable" --data-binary @assets/hello-world-aarch64 https://uploads.github.com/repos/KN4CK3R/HelloWorld/releases/20394456/assets?name=hello-world-aarch64
-{
-  "url":"https://api.github.com/repos/KN4CK3R/HelloWorld/releases/assets/15236291",
-  "id":15236291,
-  "node_id":"MDEyOlJlbGVhc2VBc3NldDE1MjM2Mjkx",
-  "name":"hello-world-aarch64",
-  "label":"",
-  "uploader":{
-    "login":"KN4CK3R",
-    "id":1666336,
-    "node_id":"MDQ6VXNlcjE2NjYzMzY=",
-    "avatar_url":"https://avatars2.githubusercontent.com/u/1666336?v=4",
-    "gravatar_id":"",
-    "url":"https://api.github.com/users/KN4CK3R",
-    "html_url":"https://github.com/KN4CK3R",
-    "followers_url":"https://api.github.com/users/KN4CK3R/followers",
-    "following_url":"https://api.github.com/users/KN4CK3R/following{/other_user}",
-    "gists_url":"https://api.github.com/users/KN4CK3R/gists{/gist_id}",
-    "starred_url":"https://api.github.com/users/KN4CK3R/starred{/owner}{/repo}",
-    "subscriptions_url":"https://api.github.com/users/KN4CK3R/subscriptions",
-    "organizations_url":"https://api.github.com/users/KN4CK3R/orgs",
-    "repos_url":"https://api.github.com/users/KN4CK3R/repos",
-    "events_url":"https://api.github.com/users/KN4CK3R/events{/privacy}",
-    "received_events_url":"https://api.github.com/users/KN4CK3R/received_events",
-    "type":"User",
-    "site_admin":false
-  },
-  "content_type":"application/x-pie-executable",
-  "state":"uploaded",
-  "size":2583728,
-  "download_count":0,
-  "created_at":"2019-10-01T19:11:04Z",
-  "updated_at":"2019-10-01T19:11:11Z",
-  "browser_download_url":"https://github.com/KN4CK3R/HelloWorld/releases/download/v1.0.0/hello-world-aarch64"
-}
-$ curl -H "Authorization: token f856c80e5929250b646b8ab30b8b065ab22fxxxx" -H "Content-Type: application/x-pie-executable" --data-binary @assets/hello-world-armv7 https://uploads.github.com/repos/KN4CK3R/HelloWorld/releases/20394456/assets?name=hello-world-armv7
-$ curl -H "Authorization: token f856c80e5929250b646b8ab30b8b065ab22fxxxx" -H "Content-Type: application/x-pie-executable" --data-binary @assets/hello-world-amd64 https://uploads.github.com/repos/KN4CK3R/HelloWorld/releases/20394456/assets?name=hello-world-amd64
-```
-
-If you have a look at the GitHub release page you will see the release with all three assets.
-
-![Activate Repository](/screenshots/rust-github-release.jpg)
+![Github Release](/screenshots/rust-github-release.png)
 
 To make your live easier you can automate all of this with Drone in the next section.
 
@@ -245,7 +129,7 @@ steps:
 - name: publish
   image: plugins/github-release
   settings:
-    api_key: 
+    api_key:
       from_secret: github_token
     files: assets/*
     title: Release Title
@@ -313,7 +197,7 @@ In order to use the GitHub API you need to provide your credentials.
 For security reasons you do not want to store your credentials in the pipeline configuration file.
 Instead you can securely store your secrets in the Drone database, adding your GitHub token via the repository settings screen.
 
-![Manage Secret](/screenshots/github-token-secret.jpg)
+![Manage Secret](/screenshots/github-token-secret.png)
 
 ## Settings
 
@@ -324,7 +208,7 @@ Add a new step to the pipeline and configure [the GitHub plugin](http://plugins.
 - name: publish
   image: plugins/github-release
   settings:
-    api_key: 
+    api_key:
       from_secret: github_token
     files: assets/*
     title: Release Title
@@ -345,7 +229,7 @@ Choose from hundreds of community plugins or create your own.
 - name: publish
   image: plugins/github-release
   settings:
-    api_key: 
+    api_key:
       from_secret: github_token
     files: assets/*
     title: Release Title
@@ -357,11 +241,16 @@ Choose from hundreds of community plugins or create your own.
 
 Provides the GitHub API token used to authenticate, sourced from the named secret.
 
+{{< alert info >}}
+To use the GitHub API you need [a token for authorization](https://github.com/settings/tokens).
+If you don't have one, create it now.
+{{< / alert >}}
+
 {{< highlight yaml "linenos=table,linenostart=12,hl_lines=4-5" >}}
 - name: publish
   image: plugins/github-release
   settings:
-    api_key: 
+    api_key:
       from_secret: github_token
     files: assets/*
     title: Release Title
@@ -378,7 +267,7 @@ This attribute defines the path(s) to the binaries you wish to upload.
 - name: publish
   image: plugins/github-release
   settings:
-    api_key: 
+    api_key:
       from_secret: github_token
     files: assets/*
     title: Release Title
@@ -397,7 +286,7 @@ For example with a file it is easy to display the whole changelog for this relea
 - name: publish
   image: plugins/github-release
   settings:
-    api_key: 
+    api_key:
       from_secret: github_token
     files: assets/*
     title: Release Title
@@ -414,7 +303,7 @@ In this case the step should only be executed when the build reason was a git ta
 - name: publish
   image: plugins/github-release
   settings:
-    api_key: 
+    api_key:
       from_secret: github_token
     files: assets/*
     title: Release Title
